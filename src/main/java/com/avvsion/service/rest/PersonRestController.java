@@ -124,11 +124,16 @@ public class PersonRestController {
             Sellers seller = (Sellers) session.getAttribute("sellerInfo");
             person = seller.getPerson();
         }
+        ApiResponse response = new ApiResponse();
+        if(person.getImage() == null){
+            response.setMessage("Image is unavailable");
+            response.setSuccess(false);
+            return ResponseEntity.status(500).body(response);
+        }
         this.fileService.deleteImage(path,person.getImage());
         person.setImage(null);
         personService.updateDetails(person);
 
-        ApiResponse response = new ApiResponse();
         response.setMessage("SuccessFully deleted");
         response.setSuccess(true);
         return ResponseEntity.status(200).body(response);

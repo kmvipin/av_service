@@ -1,12 +1,8 @@
 package com.avvsion.service.rest;
 
 import com.avvsion.service.constants.AvServiceConstants;
-import com.avvsion.service.model.Customers;
-import com.avvsion.service.model.Response;
-import com.avvsion.service.model.Sellers;
-import com.avvsion.service.service.CustomerService;
+import com.avvsion.service.model.*;
 import com.avvsion.service.service.PersonService;
-import com.avvsion.service.service.SellerService;
 import com.avvsion.service.service.fileserviceimpl.FileServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,12 +25,6 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/person")
 public class PersonRestController {
-
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private SellerService sellerService;
 
     @Autowired
     private PersonService personService;
@@ -61,27 +51,34 @@ public class PersonRestController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<Response> uploadImage(@RequestParam MultipartFile image,
+    public ResponseEntity<ApiResponse> uploadImage(@RequestParam MultipartFile image,
                                                 Authentication authentication, HttpSession session){
         List<GrantedAuthority> authority = (List<GrantedAuthority>) authentication.getAuthorities();
         String role = authority.get(0).getAuthority();
+        Person person = null;
         if(role.equals(AvServiceConstants.CUSTOMER_ROLE)){
             Customers customer = (Customers) session.getAttribute("customerInfo");
-            customer.getPerson().setImage(this.fileService.uploadImage(path,image));
-            personService.updateDetails(customer.getPerson());
+            person = customer.getPerson();
         }
         else{
             Sellers seller = (Sellers) session.getAttribute("sellerInfo");
-            seller.getPerson().setImage(this.fileService.uploadImage(path,image));
-            personService.updateDetails(seller.getPerson());
+            person = seller.getPerson();
         }
-        Response response = new Response();
-        response.setStatusCode("200");
-        response.setStatusMsg("Image Saved SuccessFullly");
+        if(person != null){
+            ApiResponse apiResponse = new ApiResponse();
+            apiResponse.setMessage("Already uploaded");
+            apiResponse.setSuccess(false);
+            return ResponseEntity.status(500).body(apiResponse);
+        }
+        person.setImage(this.fileService.uploadImage(path,image));
+        personService.updateDetails(person);
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setSuccess(true);
+        apiResponse.setMessage("SuccessFully Uploaded");
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header("isImageSaved", "true")
-                .body(response);
+                .body(apiResponse);
     }
 
     @GetMapping(value = "/requestImage", produces = {MediaType.IMAGE_JPEG_VALUE,MediaType.IMAGE_PNG_VALUE})
@@ -112,5 +109,28 @@ public class PersonRestController {
             response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         }
         StreamUtils.copy(resource,response.getOutputStream());
+    }
+
+    @DeleteMapping("/deleteImage")
+    public ResponseEntity<ApiResponse> deleteImage(HttpSession session, Authentication authentication){
+        List<GrantedAuthority> grantedAuthorities = (List<GrantedAuthority>) authentication.getAuthorities();
+        String role = grantedAuthorities.get(0).getAuthority();
+        Person person = null;
+        if(role.equals(AvServiceConstants.CUSTOMER_ROLE)){
+            Customers customer = (Customers) session.getAttribute("customerInfo");
+            person = customer.getPerson();
+        }
+        else{
+            Sellers seller = (Sellers) session.getAttribute("sellerInfo");
+            person = seller.getPerson();
+        }
+        this.fileService.deleteImage(path,person.getImage());
+        person.setImage(null);
+        personService.updateDetails(person);
+
+        ApiResponse response = new ApiResponse();
+        response.setMessage("SuccessFully deleted");
+        response.setSuccess(true);
+        return ResponseEntity.status(200).body(response);
     }
 }

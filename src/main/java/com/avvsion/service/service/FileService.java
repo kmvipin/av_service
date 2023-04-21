@@ -10,4 +10,6 @@ import java.io.InputStream;
 public interface FileService {
     String uploadImage(String path, MultipartFile file);
     InputStream requestImage(String path, String name) throws FileNotFoundException;
+
+    void deleteImage(String path, String name);
 }

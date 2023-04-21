@@ -48,5 +48,9 @@ public class FileServiceImpl implements FileService{
         return is;
     }
 
-
+    @Override
+    public void deleteImage(String path, String name){
+        File file = new File(path,name);
+        file.delete();
+    }
 }

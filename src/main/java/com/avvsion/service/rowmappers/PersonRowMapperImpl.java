@@ -18,6 +18,7 @@ public class PersonRowMapperImpl implements RowMapper<Person> {
                 resultSet.getString("phone"), resultSet.getString("email"), null,
                 resultSet.getString("pwd"), null, resultSet.getString("gender"),
                 null, new Role(""), new Address(), resultSet.getInt("age"));
+        person.setImage(resultSet.getString("image"));
         person.setPerson_id(resultSet.getInt("person_id"));
         LocalDate localDate = resultSet.getObject("date_of_birth", LocalDate.class);
         person.setDate_of_birth(localDate);

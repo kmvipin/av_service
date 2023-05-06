@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -32,8 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
         //get Token
-        String requestToken = request.getHeader("Authorization");//Authorization
-
+        String requestToken = request.getHeader("Authorization");
         String username = null;
         String token = null;
 
@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         else{
-            System.out.println(requestToken+"           "+ "it is null or does not start with bearer");
+            //throw new RuntimeException("it is null or does not start with bearer");
         }
 
         //Once we get the token, now validate
@@ -74,11 +74,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
             else{
-                System.out.println("Invalid Jwt Token");
+                //throw new RuntimeException("Invalid Jwt Token");
             }
         }
         else{
-            System.out.println("Username is null or Context is not null");
+            //throw new RuntimeException("Username is null or Context is not null");
         }
 
         filterChain.doFilter(request,response);

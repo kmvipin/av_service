@@ -1,15 +1,15 @@
 package com.avvsion.service.model;
 
 import javax.persistence.*;
-import lombok.Data;
 
-import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import lombok.Data;
 
 @Data
 public class Customers {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO,generator = "native")
+    @JsonIgnore
     private int customer_id;
 
     @OneToOne

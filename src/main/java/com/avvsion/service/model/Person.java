@@ -2,12 +2,11 @@ package com.avvsion.service.model;
 
 import com.avvsion.service.annotation.FieldsValueMatch;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import javax.persistence.*;
 import javax.validation.constraints.*;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import com.avvsion.service.annotation.StrongPassword;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -25,8 +24,8 @@ import java.time.LocalDate;
         )
 })
 public class Person extends BaseEntity{
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO,generator = "native")
+
+    @JsonIgnore
     private int person_id;
 
     @NotBlank(message = "Name must not be blank")
@@ -59,14 +58,15 @@ public class Person extends BaseEntity{
     @Size(min = 5, message = "Confirm Password must be in 5 digit")
     private String confirmPwd;
 
-    @Min(value = 12, message = "age must be above 12")
+    //@Min(value = 12, message = "age must be above 12")
     private int age;
 
+    //@Pattern(regexp = "^$|[MF]{1}", message = "Gender must be either 'M' or 'F'")
     private String gender;
 
-    @NotNull(message = "Date must not be blank")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Past(message = "date must be in past")
+   // @NotNull(message = "Date must not be blank")
+//    @JsonFormat(pattern = "yyyy-MM-dd")
+//    @Past(message = "date must be in past")
     private LocalDate date_of_birth;
 
     private Role roles;

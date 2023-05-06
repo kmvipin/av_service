@@ -2,6 +2,7 @@ package com.avvsion.service.rest;
 
 import com.avvsion.service.constants.AvServiceConstants;
 import com.avvsion.service.model.*;
+import com.avvsion.service.security.PersonDetailService;
 import com.avvsion.service.service.PersonService;
 import com.avvsion.service.service.fileserviceimpl.FileServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StreamUtils;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +28,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/person")
+@CrossOrigin("*")
 public class PersonRestController {
 
     @Autowired
@@ -38,12 +43,15 @@ public class PersonRestController {
     @Value("${project.image}")
     private String path;
 
+    @Autowired
+    private PersonDetailService userDetails;
+
     @PostMapping("/logout")
-    public ResponseEntity<Response> logOut(HttpServletRequest request){
+    public ResponseEntity<ApiResponse> logOut(HttpServletRequest request){
         httpServletRequest.getSession().invalidate();
-        Response response = new Response();
-        response.setStatusCode("200");
-        response.setStatusMsg("Logout Successfully");
+        ApiResponse response = new ApiResponse();
+        response.setSuccess(true);
+        response.setMessage("Logout Successfully");
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header("isLogout", "true")
@@ -81,9 +89,12 @@ public class PersonRestController {
                 .body(apiResponse);
     }
 
-    @GetMapping(value = "/requestImage", produces = {MediaType.IMAGE_JPEG_VALUE,MediaType.IMAGE_PNG_VALUE})
-    public void requestImage(HttpServletResponse response, HttpSession session, Authentication authentication) throws IOException {
-        List<GrantedAuthority> grantedAuthorities = (List<GrantedAuthority>) authentication.getAuthorities();
+    @GetMapping(value = "/requestImage", produces =
+            {MediaType.IMAGE_JPEG_VALUE,MediaType.IMAGE_PNG_VALUE})
+    public void requestImage(HttpServletResponse response, HttpSession session,
+                             Authentication authentication) throws IOException {
+        List<GrantedAuthority> grantedAuthorities =
+                (List<GrantedAuthority>) authentication.getAuthorities();
         String role = grantedAuthorities.get(0).getAuthority();
         InputStream resource = null;
         String name = null;
@@ -112,8 +123,10 @@ public class PersonRestController {
     }
 
     @DeleteMapping("/deleteImage")
-    public ResponseEntity<ApiResponse> deleteImage(HttpSession session, Authentication authentication){
-        List<GrantedAuthority> grantedAuthorities = (List<GrantedAuthority>) authentication.getAuthorities();
+    public ResponseEntity<ApiResponse> deleteImage(HttpSession session,
+                                                   Authentication authentication){
+        List<GrantedAuthority> grantedAuthorities =
+                (List<GrantedAuthority>) authentication.getAuthorities();
         String role = grantedAuthorities.get(0).getAuthority();
         Person person = null;
         if(role.equals(AvServiceConstants.CUSTOMER_ROLE)){
@@ -137,5 +150,16 @@ public class PersonRestController {
         response.setMessage("SuccessFully deleted");
         response.setSuccess(true);
         return ResponseEntity.status(200).body(response);
+    }
+
+    @GetMapping("/getPerson")
+    public ResponseEntity<Person> getDetails(Authentication authentication){
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails == false) {
+            throw new RuntimeException("User Not Exist");
+        }
+        String username = ((UserDetails) principal).getUsername();
+        Person person = personService.getPersonDetails(username);
+        return ResponseEntity.status(200).body(person);
     }
 }

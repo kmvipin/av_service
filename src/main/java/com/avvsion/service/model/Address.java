@@ -4,15 +4,15 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 @Data
 public class Address extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
+    @JsonIgnore
     private int address_id;
-
     public Address(){
 
     }
@@ -35,6 +35,6 @@ public class Address extends BaseEntity {
     @Size(min = 3, message = "State must be at least 3 character long")
     private String state;
 
-    @Pattern(regexp = "(^$|[0-9]{5})",message = "Zip code must be 5 digits")
+    @Pattern(regexp = "(^$|[0-9]{6})",message = "Zip code must be 5 digits")
     private String zipCode;
 }

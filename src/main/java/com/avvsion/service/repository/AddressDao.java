@@ -48,7 +48,6 @@ public class AddressDao{
 
     public Address getAddressById(int addressId){
         String sql = "SELECT * FROM address WHERE address_id = ?";
-
         return jdbcTemplate.queryForObject(sql,new AddressRowMapperImpl(), addressId);
     }
     public int updateAddress(Address address){

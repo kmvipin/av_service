@@ -3,6 +3,8 @@ package com.avvsion.service.rowmappers;
 import com.avvsion.service.model.Address;
 import com.avvsion.service.model.Orders;
 import com.avvsion.service.model.Person;
+import com.avvsion.service.service.PersonService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
@@ -23,17 +25,6 @@ public class OrdersRowMapperImpl implements RowMapper<Orders> {
         localDate = resultSet.getObject("confirm_date", LocalDate.class);
         order.setConfirm_date(localDate);
         order.setService_id(resultSet.getInt("service_id"));
-        Person person = new Person();
-        Address address = new Address();
-        person.setMobileNumber(resultSet.getString("phone"));
-        address.setAddress_id(resultSet.getInt("address_id"));
-        address.setState(resultSet.getString("state"));
-        address.setZipCode(resultSet.getString("zip_code"));
-        address.setAddress1(resultSet.getString("address1"));
-        address.setAddress2(resultSet.getString("address2"));
-        address.setCity(resultSet.getString("city"));
-        person.setAddress(address);
-        order.setPerson(person);
         return order;
     }
 }

@@ -57,7 +57,12 @@ public class PersonRepository {
                 ps.setString(5, person.getPwd());
                 ps.setInt(6, person.getRoles().getRoleId());
                 ps.setInt(7, person.getAge());
-                ps.setDate(8, Date.valueOf(person.getDate_of_birth()));
+                if(person.getDate_of_birth() != null) {
+                    ps.setDate(8, Date.valueOf(person.getDate_of_birth()));
+                }
+                else{
+                    ps.setDate(8, null);
+                }
                 ps.setString(9, person.getGender());
                 ps.setTimestamp(10, Timestamp.valueOf(LocalDateTime.now()));
                 ps.setString(11, person.getFirst_name());
@@ -66,7 +71,7 @@ public class PersonRepository {
             }
         }, keyHolder);
                 person.setPerson_id(keyHolder.getKey().intValue());
-        return status;
+        return 1;
     }
     public Person readByEmail(String email){
         String sql = "SELECT * FROM persons WHERE email = ?";

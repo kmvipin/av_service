@@ -1,17 +1,18 @@
 package com.avvsion.service.model;
 
-import javax.persistence.*;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 @Data
 public class Role {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO,generator = "native")
+    @JsonIgnore
     private int roleId;
 
     private String roleName;
 
+    public Role(){
+
+    }
     public Role(String roleName) {
         this.roleName = roleName;
     }

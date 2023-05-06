@@ -1,13 +1,10 @@
 package com.avvsion.service.service;
 
 import com.avvsion.service.constants.AvServiceConstants;
-import com.avvsion.service.model.Address;
-import com.avvsion.service.model.Customers;
-import com.avvsion.service.model.Person;
-import com.avvsion.service.model.Role;
+import com.avvsion.service.model.*;
 import com.avvsion.service.repository.AddressDao;
 import com.avvsion.service.repository.CustomerDao;
-import com.avvsion.service.repository.PersonRepository;
+import com.sun.org.apache.xpath.internal.operations.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +22,11 @@ public class CustomerService {
 
     public int saveCustomer(Customers customer){
         Person person = customer.getPerson();
+        if(person.getAddress() == null){
+            person.setAddress(new Address());
+        }
         person.setRoles(new Role("Customer"));
-        if(personService.initializePerson(person) == 0) {return 0;};
+        personService.initializePerson(person);
         Address address = customer.getPerson().getAddress();
         customerDao.addCustomer(customer);
         address.setAddress_id(person.getPerson_id());
@@ -55,5 +55,9 @@ public class CustomerService {
 
     public List<Customers> getALlCustomers(){
         return customerDao.getAllCustomersByRole(AvServiceConstants.CUSTOMER_ROLE);
+    }
+
+    public List<Orders> getCustomerOrdersByCustomerId(int customer_id){
+        return customerDao.getOrdersByCustomerId(customer_id);
     }
 }

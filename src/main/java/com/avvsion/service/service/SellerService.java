@@ -59,4 +59,16 @@ public class SellerService{
     public List<Services> getServices(int id){
         return sellerDao.getServices(id);
     }
+
+    public int saveSellerPay(SellerPay sellerPay){
+        return sellerDao.saveSellerPay(sellerPay);
+    }
+
+    public List<SellerPay> getSellerOrder(String category, int seller_id){
+        return sellerDao.getSellerOrders(category,seller_id);
+    }
+
+    public List<SellerPay> getSellerBooking(int seller_id){
+        return sellerDao.getSellerPay(seller_id);
+    }
 }

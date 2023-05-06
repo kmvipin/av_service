@@ -1,6 +1,6 @@
 package com.avvsion.service.rest;
 
-import com.avvsion.service.model.Response;
+import com.avvsion.service.model.ApiResponse;
 import com.avvsion.service.model.Sellers;
 import com.avvsion.service.model.Services;
 import com.avvsion.service.service.ServicesService;
@@ -14,6 +14,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
+@CrossOrigin("*")
 @RequestMapping(value = "/api/service")
 public class ServiceRestController {
 
@@ -21,29 +22,24 @@ public class ServiceRestController {
     private ServicesService servicesService;
 
     @PostMapping("/addService")
-    public ResponseEntity<Response> addService(@Valid @RequestBody Services service, HttpSession session){
-        Response response = new Response();
+    public ResponseEntity<ApiResponse> addService(@Valid @RequestBody
+                                                      Services service, HttpSession session) {
+        ApiResponse response = new ApiResponse();
         String flag = "false";
         Sellers seller = (Sellers) session.getAttribute("sellerInfo");
         String email = seller.getPerson().getEmail();
-        if(servicesService.addService(service,email) == 0) {
-            response.setStatusCode("401");
-            response.setStatusMsg("User is not a Seller");
-        }
-        else{
-            response.setStatusCode("200");
-            response.setStatusMsg("service saved successfully");
+        if (servicesService.addService(service, email) == 0) {
+            response.setSuccess(false);
+            response.setMessage("User is not a Seller");
+        } else {
+            response.setSuccess(true);
+            response.setMessage("service saved successfully");
             flag = "true";
         }
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .header("isServiceSaved", flag)
                 .body(response);
-    }
-
-    @GetMapping("/getAllServicesByCategory")
-    public List<Services> getAllServicesByCategory(@RequestParam String category){
-        return servicesService.getAllServicesByCategory(category);
     }
 
     @GetMapping("/getAllServices")

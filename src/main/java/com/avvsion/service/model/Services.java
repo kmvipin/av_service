@@ -1,22 +1,17 @@
 package com.avvsion.service.model;
-
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
-import lombok.Data;
 
-import java.awt.image.BufferedImage;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 
 @Data
 public class Services {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
+    @JsonIgnore
     private int service_id;
 
+    @JsonIgnore
     private int seller_id;
 
     @NotBlank(message = "Service name must not be blank")

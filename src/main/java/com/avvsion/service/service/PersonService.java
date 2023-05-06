@@ -16,11 +16,9 @@ public class PersonService {
     public int initializePerson(Person person){
         return personRepository.savePerson(person);
     }
-
     public Person getPersonDetails(String email){
         return personRepository.readByEmail(email);
     }
-
     public boolean checkEmailExistOrNot(String email){
         return personRepository.EmailExistOrNot(email);
     }
@@ -30,8 +28,11 @@ public class PersonService {
     public int updateDetails(Person person){
         return personRepository.updatePersonById(person);
     }
-
     public String getRoleById(int id){
         return personRepository.getRoleById(id);
+    }
+
+    public Person getPersonById(int id){
+        return personRepository.readById(id);
     }
 }

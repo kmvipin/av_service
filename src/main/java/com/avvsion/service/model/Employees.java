@@ -1,8 +1,8 @@
 package com.avvsion.service.model;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
-import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -12,10 +12,10 @@ import java.time.LocalDate;
 @Data
 public class Employees extends Person{
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
+    @JsonIgnore
     private int employee_id;
 
+    @JsonIgnore
     private int person_id;
 
     @NotBlank(message = "Job Title must not be blank")

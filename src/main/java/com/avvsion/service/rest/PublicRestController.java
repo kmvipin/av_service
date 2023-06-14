@@ -5,12 +5,12 @@ import com.avvsion.service.model.*;
 import com.avvsion.service.model.ApiResponse;
 import com.avvsion.service.model.JwtAuthResponse;
 import com.avvsion.service.security.JwtTokenHelper;
-import com.avvsion.service.service.CustomerService;
-import com.avvsion.service.service.PersonService;
-import com.avvsion.service.service.SellerService;
-import com.avvsion.service.service.ServicesService;
+import com.avvsion.service.service.*;
 import com.avvsion.service.service.fileserviceimpl.FileServiceImpl;
+import com.sun.org.apache.regexp.internal.RE;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -19,12 +19,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -60,6 +63,12 @@ public class PublicRestController {
     @Value("${project.image}")
     private String path;
 
+    @Autowired
+    private OTPGenerator otpGenerator;
+
+    @Autowired
+    private SMSService smsService;
+
     @PostMapping("/user_login")
     public ResponseEntity<JwtAuthResponse> createToken(@Valid @RequestBody AuthCredential authCredential,
                                            HttpSession session) {
@@ -74,6 +83,13 @@ public class PublicRestController {
             return ResponseEntity.status(404).body(jwtAuthResponse);
         }
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(authCredential.getEmail());
+        List<GrantedAuthority> auth = (List<GrantedAuthority>) userDetails.getAuthorities();
+        if(!auth.get(0).getAuthority().equalsIgnoreCase(authCredential.getRole())){
+            JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
+            jwtAuthResponse.setSuccess(false);
+            jwtAuthResponse.setMessage("Invalid User");
+            return ResponseEntity.status(404).body(jwtAuthResponse);
+        }
         String token = this.jwtTokenHelper.generateToken(userDetails);
         JwtAuthResponse response = new JwtAuthResponse();
         response.setToken(token);
@@ -81,12 +97,14 @@ public class PublicRestController {
             Customers customer = customerService.getCustomer(authCredential.getEmail());
             customer.getPerson().setPwd(null);
             System.out.println("asgasgga"+customer);
+            response.setRole("CUSTOMER");
             session.setAttribute("customerInfo", customer);
         }
         else if(AvServiceConstants.SELLER_ROLE.equals(authCredential.getRole())){
             Sellers seller = sellerService.getSellerDetails(authCredential.getEmail());
             seller.getPerson().setPwd(null);
             session.setAttribute("sellerInfo", seller);
+            response.setRole("SELLER");
         }
         response.setSuccess(true);
         response.setMessage("Login SuccessFully");
@@ -143,7 +161,9 @@ public class PublicRestController {
     @GetMapping("/getAllServicesByCategory")
     public List<Services> getAllServicesByCategory(@RequestParam String category){
         System.out.println("helloooooo");
-        return servicesService.getAllServicesByCategory(category);
+
+        List<Services> services = servicesService.getAllServicesByCategory(category);
+        return services;
     }
 
     @PostMapping("/checkEmail")
@@ -176,6 +196,64 @@ public class PublicRestController {
             throw new RuntimeException("Invalid username or password !!");
         }
 
+    }
+
+    @PostMapping("/sendOTP")
+    public ResponseEntity<ApiResponse> forgotPassword(@RequestParam String phoneNumber, HttpSession session){
+        if(personService.getEmailByPhoneNumber(phoneNumber) == null) {
+            return ResponseEntity.status(400).body(new ApiResponse("Phone Number Must Be Valid", false));
+        }
+        String otp = otpGenerator.generateOTP();
+        session.setAttribute("verifyOTP_"+phoneNumber,otp);
+        smsService.sendOTP("+91"+phoneNumber, otp);
+
+        return ResponseEntity.status(200).body(new ApiResponse(otp, true));
+    }
+
+    @GetMapping("/verifyOTP")
+    public ResponseEntity<ApiResponse> verifyOTP(@RequestParam String otp, @RequestParam String email, HttpServletRequest request){
+        String generatedOTP = (String)request.getSession().getAttribute("verifyOTP_"+email);
+        if(!otp.equals(generatedOTP)){
+            return ResponseEntity.status(400).body(new ApiResponse("Invalid OTP",false));
+        }
+        return ResponseEntity.status(200).body(new ApiResponse("Verified Successfully",true));
+    }
+
+    @PostMapping("/changePass")
+    public ResponseEntity<ApiResponse> changePassByPhoneNumber
+            (@RequestParam String otp, @RequestParam String phoneNumber, @RequestParam String newPass, @RequestParam(value = "confirmPass") String confirmPass, HttpSession session){
+            //String generatedOTP = (String)session.getAttribute("verifyOTP_"+email);
+//            if(!otp.equals(generatedOTP)){
+//                return ResponseEntity.status(400).body(new ApiResponse("Invalid OTP",false));
+//            }
+            if(confirmPass == null || confirmPass.length() <= 4){
+                return ResponseEntity.status(400).body(new ApiResponse("Check Your Password",false));
+            }
+
+            if(!newPass.equals(confirmPass)){
+                return ResponseEntity.status(400).body(new ApiResponse("New Pass And Confirm Pass Must be Same",false));
+            }
+
+            if(!personService.changePass(phoneNumber,confirmPass)){
+                return ResponseEntity.status(400).body(new ApiResponse("Something went wrong",false));
+            }
+            return ResponseEntity.status(200).body(new ApiResponse("Password Change Successfully",true));
+    }
+
+    @GetMapping("/getEmailByPhone")
+    public String getEmailByPhone(@RequestParam String phoneNumber, HttpServletRequest request){
+        request.getCookies();
+        if(phoneNumber == null || phoneNumber.length() > 10){
+            throw new RuntimeException("Invalid Number");
+        }
+
+        String email = personService.getEmailByPhoneNumber(phoneNumber);
+        if(email == null){
+            throw new RuntimeException("Invalid Number");
+        }
+        JSONObject object = new JSONObject();
+        object.put("email",email);
+        return object.toString();
     }
 
 }

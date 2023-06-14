@@ -23,7 +23,10 @@ public class SellerService{
 
     public int saveSeller(Sellers seller){
         Person person = seller.getPerson();
-        person.setRoles(new Role("Seller"));
+        person.setRoles(new Role(AvServiceConstants.SELLER_ROLE));
+        if(person.getAddress() == null){
+            person.setAddress(new Address());
+        }
         Address address = person.getAddress();
         if(personService.initializePerson(person) == 0){
             return 0;

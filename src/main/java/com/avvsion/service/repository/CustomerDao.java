@@ -71,6 +71,7 @@ public class CustomerDao {
                     LocalDate localDate1 = resultSet.getObject("confirm_date", LocalDate.class);
                     order.setConfirm_date(localDate1);
                     order.setService(serviceDao.getServiceById(resultSet.getInt("service_id")));
+                    order.setService_id(order.getService().getService_id());
                     return order;
                 }
             },customer_id);

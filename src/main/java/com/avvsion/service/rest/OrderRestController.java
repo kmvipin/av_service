@@ -1,7 +1,6 @@
 package com.avvsion.service.rest;
 
 import com.avvsion.service.model.ApiResponse;
-import com.avvsion.service.model.Customers;
 import com.avvsion.service.model.Orders;
 import com.avvsion.service.model.Payments;
 import com.avvsion.service.service.OrderService;
@@ -17,7 +16,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import com.razorpay.*;
 
-import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.List;
 

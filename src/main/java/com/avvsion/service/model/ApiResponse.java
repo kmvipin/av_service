@@ -1,13 +1,11 @@
 package com.avvsion.service.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 public class ApiResponse {
     public ApiResponse(String message, boolean success) {
         this.message = message;

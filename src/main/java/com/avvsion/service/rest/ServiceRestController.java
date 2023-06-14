@@ -1,12 +1,15 @@
 package com.avvsion.service.rest;
 
 import com.avvsion.service.model.ApiResponse;
+import com.avvsion.service.model.Person;
 import com.avvsion.service.model.Sellers;
 import com.avvsion.service.model.Services;
 import com.avvsion.service.service.ServicesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
@@ -23,12 +26,16 @@ public class ServiceRestController {
 
     @PostMapping("/addService")
     public ResponseEntity<ApiResponse> addService(@Valid @RequestBody
-                                                      Services service, HttpSession session) {
+                                                      Services service, Authentication authentication) {
+        System.out.println(service+"jadgikjabhripgua");
         ApiResponse response = new ApiResponse();
         String flag = "false";
-        Sellers seller = (Sellers) session.getAttribute("sellerInfo");
-        String email = seller.getPerson().getEmail();
-        if (servicesService.addService(service, email) == 0) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails == false) {
+            throw new RuntimeException("User Not Exist");
+        }
+        String username = ((UserDetails) principal).getUsername();
+        if (servicesService.addService(service, username) == 0) {
             response.setSuccess(false);
             response.setMessage("User is not a Seller");
         } else {
@@ -45,5 +52,13 @@ public class ServiceRestController {
     @GetMapping("/getAllServices")
     public List<Services> getAllServices(){
         return servicesService.getAllServices();
+    }
+
+    @DeleteMapping("/removeService")
+    public ResponseEntity<ApiResponse> removeService(int service_id){
+        if(!servicesService.removeService(service_id)){
+            return ResponseEntity.status(404).body(new ApiResponse("Service Not Found", false));
+        }
+        return ResponseEntity.status(200).body(new ApiResponse("Service SuccessFully Deleted", true));
     }
 }

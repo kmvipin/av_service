@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public class PersonRepository {
@@ -115,11 +116,17 @@ public class PersonRepository {
     }
 
     public int updatePersonById(Person person){
-        String sql = "UPDATE persons SET first_name = ?, last_name = ?, image = ?, phone = ?," +
+        String sql = "UPDATE persons SET first_name = ?, last_name = ?, phone = ?," +
                 "age = ?, date_of_birth = ?, gender = ?, updated_at = ?, updated_by = ? WHERE person_id = ?";
-
-        return jdbcTemplate.update(sql, person.getFirst_name(), person.getLast_name(), person.getImage(),
-                person.getMobileNumber(), person.getAge(), Date.valueOf(person.getDate_of_birth()),
+        Date dateOfBirth;
+        if(person.getDate_of_birth() != null) {
+            dateOfBirth = Date.valueOf(person.getDate_of_birth());
+        }
+        else{
+            dateOfBirth = null;
+        }
+        return jdbcTemplate.update(sql, person.getFirst_name(), person.getLast_name(),
+                person.getMobileNumber(), person.getAge(), dateOfBirth,
                 person.getGender(), Timestamp.valueOf(LocalDateTime.now()), person.getFirst_name(),person.getPerson_id());
     }
 
@@ -160,5 +167,44 @@ public class PersonRepository {
         catch(EmptyResultDataAccessException e){
             return false;
         }
+    }
+
+    public boolean updateImage(int id, String image){
+        String update = "UPDATE persons SET image = ? WHERE person_id = ?";
+        try{
+            jdbcTemplate.update(update,image,id);
+            return true;
+        }
+        catch (Exception e){
+            return false;
+        }
+    }
+
+    public String getEmailByPhone(String phoneNumber){
+        String sql = "SELECT email FROM persons WHERE phone = ?";
+
+        try{
+            return jdbcTemplate.queryForObject(sql, new RowMapper<String>() {
+                @Override
+                public String mapRow(ResultSet resultSet, int i) throws SQLException {
+                    return resultSet.getString("email");
+                }
+            },phoneNumber);
+        }
+        catch (Exception e){
+            return null;
+        }
+    }
+
+    public boolean changePass(String phoneNumber, String newPass){
+        String sql = "UPDATE persons SET pwd = ? WHERE phone = ?";
+
+        try{
+            jdbcTemplate.update(sql,newPass,phoneNumber);
+        }
+        catch (Exception e){
+            return false;
+        }
+        return true;
     }
 }

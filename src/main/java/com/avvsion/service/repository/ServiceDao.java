@@ -68,4 +68,15 @@ public class ServiceDao {
         String sql = "SELECT * FROM services WHERE service_id = ?";
         return jdbcTemplate.queryForObject(sql,new ServiceRowMapperImpl(),service_id);
     }
+
+    public boolean removeService(int service_id){
+        String sql = "DELETE FROM services WHERE service_id = ?";
+        try {
+            jdbcTemplate.update(sql,service_id);
+        }
+        catch (EmptyResultDataAccessException e){
+            return false;
+        }
+        return true;
+    }
 }

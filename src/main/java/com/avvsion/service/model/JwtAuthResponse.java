@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 @Data
 public class JwtAuthResponse {
     private String token;
+    private String role;
     private boolean success;
     private String message;
 }

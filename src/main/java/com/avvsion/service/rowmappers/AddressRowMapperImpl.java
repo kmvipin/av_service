@@ -17,7 +17,6 @@ public class AddressRowMapperImpl implements RowMapper<Address> {
         address.setCity(resultSet.getString("city"));
         address.setState(resultSet.getString("state"));
         address.setZipCode(resultSet.getString("zip_code"));
-
         return address;
     }
 }

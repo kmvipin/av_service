@@ -25,7 +25,7 @@ public class CustomerService {
         if(person.getAddress() == null){
             person.setAddress(new Address());
         }
-        person.setRoles(new Role("Customer"));
+        person.setRoles(new Role(AvServiceConstants.CUSTOMER_ROLE));
         personService.initializePerson(person);
         Address address = customer.getPerson().getAddress();
         customerDao.addCustomer(customer);

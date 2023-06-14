@@ -13,6 +13,7 @@ public class ServicesService {
     @Autowired
     private PersonService personService;
     public int addService(Services service, String email){
+
         if(service.getSeller_id() == 0){
             service.setSeller_id(personService.getPersonId(email));
         }
@@ -33,5 +34,9 @@ public class ServicesService {
 
     public Services getService(int service_id){
         return serviceDao.getServiceById(service_id);
+    }
+
+    public boolean removeService(int service_id){
+        return serviceDao.removeService(service_id);
     }
 }

@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.sound.midi.SysexMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -58,28 +59,28 @@ public class PersonRestController {
                 .body(response);
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<ApiResponse> uploadImage(@RequestParam MultipartFile image,
+    @PostMapping(value = "/upload")
+    public ResponseEntity<ApiResponse> uploadImage(@RequestBody MultipartFile image,
                                                 Authentication authentication, HttpSession session){
-        List<GrantedAuthority> authority = (List<GrantedAuthority>) authentication.getAuthorities();
-        String role = authority.get(0).getAuthority();
-        Person person = null;
-        if(role.equals(AvServiceConstants.CUSTOMER_ROLE)){
-            Customers customer = (Customers) session.getAttribute("customerInfo");
-            person = customer.getPerson();
+        System.out.println("hello guysss");
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails == false) {
+            throw new RuntimeException("User Not Exist");
         }
-        else{
-            Sellers seller = (Sellers) session.getAttribute("sellerInfo");
-            person = seller.getPerson();
-        }
-        if(person != null){
+        String username = ((UserDetails) principal).getUsername();
+        Person person = personService.getPersonDetails(username);
+
+        if(person.getImage() != null){
             ApiResponse apiResponse = new ApiResponse();
             apiResponse.setMessage("Already uploaded");
             apiResponse.setSuccess(false);
             return ResponseEntity.status(500).body(apiResponse);
         }
         person.setImage(this.fileService.uploadImage(path,image));
-        personService.updateDetails(person);
+        if(!personService.updateImage(person.getPerson_id(),person.getImage())){
+            return ResponseEntity.status(400).body(new ApiResponse("Failed",false));
+        }
+
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setSuccess(true);
         apiResponse.setMessage("SuccessFully Uploaded");
@@ -93,27 +94,19 @@ public class PersonRestController {
             {MediaType.IMAGE_JPEG_VALUE,MediaType.IMAGE_PNG_VALUE})
     public void requestImage(HttpServletResponse response, HttpSession session,
                              Authentication authentication) throws IOException {
-        List<GrantedAuthority> grantedAuthorities =
-                (List<GrantedAuthority>) authentication.getAuthorities();
-        String role = grantedAuthorities.get(0).getAuthority();
-        InputStream resource = null;
         String name = null;
-        if(role.equals(AvServiceConstants.CUSTOMER_ROLE)){
-            Customers customer = (Customers) session.getAttribute("customerInfo");
-            name = customer.getPerson().getImage();
-            if(name == null){
-                return;
-            }
-            resource = this.fileService.requestImage(path,name);
+        InputStream resource = null;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails == false) {
+            throw new RuntimeException("User Not Exist");
         }
-        else{
-            Sellers seller = (Sellers) session.getAttribute("sellerInfo");
-            name = seller.getPerson().getImage();
-            if(name == null){
-                return;
-            }
-            resource = this.fileService.requestImage(path,name);
+        String username = ((UserDetails) principal).getUsername();
+        Person person = personService.getPersonDetails(username);
+        name = person.getImage();
+        if(name == null){
+            throw new RuntimeException("Image is null");
         }
+        resource = this.fileService.requestImage(path,name);
         if(name.substring(name.lastIndexOf(".")).equals(".png")){
             response.setContentType(MediaType.IMAGE_PNG_VALUE);
         }else{
@@ -125,18 +118,24 @@ public class PersonRestController {
     @DeleteMapping("/deleteImage")
     public ResponseEntity<ApiResponse> deleteImage(HttpSession session,
                                                    Authentication authentication){
-        List<GrantedAuthority> grantedAuthorities =
-                (List<GrantedAuthority>) authentication.getAuthorities();
-        String role = grantedAuthorities.get(0).getAuthority();
-        Person person = null;
-        if(role.equals(AvServiceConstants.CUSTOMER_ROLE)){
-            Customers customer = (Customers) session.getAttribute("customerInfo");
-            person = customer.getPerson();
+//        List<GrantedAuthority> grantedAuthorities =
+//                (List<GrantedAuthority>) authentication.getAuthorities();
+//        String role = grantedAuthorities.get(0).getAuthority();
+//        Person person = null;
+//        if(role.equals(AvServiceConstants.CUSTOMER_ROLE)){
+//            Customers customer = (Customers) session.getAttribute("customerInfo");
+//            person = customer.getPerson();
+//        }
+//        else{
+//            Sellers seller = (Sellers) session.getAttribute("sellerInfo");
+//            person = seller.getPerson();
+//        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails == false) {
+            throw new RuntimeException("User Not Exist");
         }
-        else{
-            Sellers seller = (Sellers) session.getAttribute("sellerInfo");
-            person = seller.getPerson();
-        }
+        String username = ((UserDetails) principal).getUsername();
+        Person person = personService.getPersonDetails(username);
         ApiResponse response = new ApiResponse();
         if(person.getImage() == null){
             response.setMessage("Image is unavailable");
@@ -162,4 +161,6 @@ public class PersonRestController {
         Person person = personService.getPersonDetails(username);
         return ResponseEntity.status(200).body(person);
     }
+
+
 }

@@ -31,8 +31,20 @@ public class PersonService {
     public String getRoleById(int id){
         return personRepository.getRoleById(id);
     }
+    public boolean updateImage(int id, String image){
+        return personRepository.updateImage(id,image);
+    }
 
     public Person getPersonById(int id){
         return personRepository.readById(id);
+    }
+
+    public String getEmailByPhoneNumber(String phoneNumber){
+
+        return personRepository.getEmailByPhone(phoneNumber);
+    }
+
+    public boolean changePass(String phoneNumber, String newPass){
+        return personRepository.changePass(phoneNumber,newPass);
     }
 }

@@ -49,7 +49,7 @@ public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .authorizeHttpRequests()
                 .antMatchers(PUBLIC_URLS).permitAll()
-                //.antMatchers(HttpMethod.GET).permitAll()
+                .antMatchers(HttpMethod.GET).permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()

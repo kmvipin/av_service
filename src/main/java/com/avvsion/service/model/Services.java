@@ -8,7 +8,6 @@ import lombok.Data;
 @Data
 public class Services {
 
-    @JsonIgnore
     private int service_id;
 
     @JsonIgnore

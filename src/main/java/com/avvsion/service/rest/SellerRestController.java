@@ -1,5 +1,6 @@
 package com.avvsion.service.rest;
 
+import com.avvsion.service.constants.AvServiceConstants;
 import com.avvsion.service.model.*;
 import com.avvsion.service.service.OrderService;
 import com.avvsion.service.service.PersonService;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +26,6 @@ public class SellerRestController {
 
     @Autowired
     private SellerService sellerService;
-
-    @Autowired
-    private OrderService orderService;
 
     @Autowired
     private PersonService personService;
@@ -60,12 +59,22 @@ public class SellerRestController {
     }
 
     @GetMapping("/getServices")
-    public List<Services> getServices(HttpSession session){
-        Sellers sellers = (Sellers) session.getAttribute("sellerInfo");
-        return sellerService.getServices(sellers.getSeller_id());
+    public List<Services> getServices(Authentication authentication){
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails == false) {
+            throw new RuntimeException("User Not Exist");
+        }
+        List<GrantedAuthority> authorities = (List<GrantedAuthority>) authentication.getAuthorities();
+        String role = authorities.get(0).getAuthority();
+        if(!role.equals(AvServiceConstants.SELLER_ROLE)){
+            throw new RuntimeException("Invalid User");
+        }
+        String username = ((UserDetails) principal).getUsername();
+        int seller_id = personService.getPersonId(username);
+        return sellerService.getServices(seller_id);
     }
 
-    @GetMapping("/getSellerOrder")
+    @GetMapping("/getSellerOrderByCategory")
     public List<SellerPay> getOrderByCategory(@RequestParam String category, HttpSession session){
         Sellers seller = (Sellers) session.getAttribute("sellerInfo");
         return sellerService.getSellerOrder(category,seller.getSeller_id());
@@ -76,6 +85,11 @@ public class SellerRestController {
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetails == false) {
             throw new RuntimeException("User Not Exist");
+        }
+        List<GrantedAuthority> authorities = (List<GrantedAuthority>) authentication.getAuthorities();
+        String role = authorities.get(0).getAuthority();
+        if(!role.equals(AvServiceConstants.SELLER_ROLE)){
+            throw new RuntimeException("Invalid User");
         }
         String username = ((UserDetails) principal).getUsername();
         int seller_id = personService.getPersonId(username);

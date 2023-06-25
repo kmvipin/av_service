@@ -27,6 +27,8 @@ import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
+import java.util.Arrays;
+
 @Configuration
 @EnableWebSecurity
 @EnableWebMvc
@@ -82,10 +84,23 @@ public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
     public FilterRegistrationBean<CorsFilter> corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        config.setAllowCredentials(false);
+        config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedHeader("Content-Type");
+        config.addAllowedHeader("X-Requested-With");
+        config.addAllowedHeader("Authorization");
+        config.addAllowedHeader("Access-Control-Request-Headers");
+        config.addAllowedHeader("Origin");
+        config.addAllowedHeader("accept");
+        config.addAllowedHeader("Origin");
+        config.addAllowedHeader("Access-Control-Request-Method");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("DELETE");
+        config.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin","Access-Control-Allow-Credentials","Access-Control-Allow-Headers"));
+        config.setAllowCredentials(true);
+        //config.setMaxAge();
         source.registerCorsConfiguration("/**", config);
         FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);

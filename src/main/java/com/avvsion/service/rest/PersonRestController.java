@@ -1,24 +1,23 @@
 package com.avvsion.service.rest;
 
-import com.avvsion.service.constants.AvServiceConstants;
 import com.avvsion.service.model.*;
 import com.avvsion.service.security.PersonDetailService;
 import com.avvsion.service.service.PersonService;
 import com.avvsion.service.service.fileserviceimpl.FileServiceImpl;
+import javafx.application.Application;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StreamUtils;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -29,7 +28,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/person")
-@CrossOrigin("*")
 public class PersonRestController {
 
     @Autowired
@@ -48,7 +46,18 @@ public class PersonRestController {
     private PersonDetailService userDetails;
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logOut(HttpServletRequest request){
+    public ResponseEntity<ApiResponse> logOut(HttpServletResponse res){
+        Cookie invalidatedCookie = new Cookie("JSESSIONID", null);
+
+        // Set the max age of the cookie to 0 to invalidate it
+        invalidatedCookie.setMaxAge(0);
+
+        // Set the cookie's path to match the original cookie's path
+        invalidatedCookie.setPath("/");
+
+        // Add the cookie to the response
+        res.addCookie(invalidatedCookie);
+
         httpServletRequest.getSession().invalidate();
         ApiResponse response = new ApiResponse();
         response.setSuccess(true);
@@ -60,15 +69,11 @@ public class PersonRestController {
     }
 
     @PostMapping(value = "/upload")
-    public ResponseEntity<ApiResponse> uploadImage(@RequestBody MultipartFile image,
+    public ResponseEntity<ApiResponse> uploadImage(@RequestParam("image") MultipartFile image,
                                                 Authentication authentication, HttpSession session){
         System.out.println("hello guysss");
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails == false) {
-            throw new RuntimeException("User Not Exist");
-        }
-        String username = ((UserDetails) principal).getUsername();
-        Person person = personService.getPersonDetails(username);
+        System.out.println(image);
+        Person person = (Person)session.getAttribute("personInfo");
 
         if(person.getImage() != null){
             ApiResponse apiResponse = new ApiResponse();
@@ -77,6 +82,7 @@ public class PersonRestController {
             return ResponseEntity.status(500).body(apiResponse);
         }
         person.setImage(this.fileService.uploadImage(path,image));
+        session.setAttribute("personInfo",person);
         if(!personService.updateImage(person.getPerson_id(),person.getImage())){
             return ResponseEntity.status(400).body(new ApiResponse("Failed",false));
         }
@@ -92,8 +98,9 @@ public class PersonRestController {
 
     @GetMapping(value = "/requestImage", produces =
             {MediaType.IMAGE_JPEG_VALUE,MediaType.IMAGE_PNG_VALUE})
-    public void requestImage(HttpServletResponse response, HttpSession session,
-                             Authentication authentication) throws IOException {
+
+    public void requestImage(HttpServletResponse response,
+                             Authentication authentication, HttpSession session) throws IOException {
         String name = null;
         InputStream resource = null;
         Object principal = authentication.getPrincipal();
@@ -102,6 +109,7 @@ public class PersonRestController {
         }
         String username = ((UserDetails) principal).getUsername();
         Person person = personService.getPersonDetails(username);
+//        Person person = (Person)session.getAttribute("personInfo");
         name = person.getImage();
         if(name == null){
             throw new RuntimeException("Image is null");
@@ -113,29 +121,13 @@ public class PersonRestController {
             response.setContentType(MediaType.IMAGE_JPEG_VALUE);
         }
         StreamUtils.copy(resource,response.getOutputStream());
+        resource.close();
     }
 
     @DeleteMapping("/deleteImage")
     public ResponseEntity<ApiResponse> deleteImage(HttpSession session,
                                                    Authentication authentication){
-//        List<GrantedAuthority> grantedAuthorities =
-//                (List<GrantedAuthority>) authentication.getAuthorities();
-//        String role = grantedAuthorities.get(0).getAuthority();
-//        Person person = null;
-//        if(role.equals(AvServiceConstants.CUSTOMER_ROLE)){
-//            Customers customer = (Customers) session.getAttribute("customerInfo");
-//            person = customer.getPerson();
-//        }
-//        else{
-//            Sellers seller = (Sellers) session.getAttribute("sellerInfo");
-//            person = seller.getPerson();
-//        }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails == false) {
-            throw new RuntimeException("User Not Exist");
-        }
-        String username = ((UserDetails) principal).getUsername();
-        Person person = personService.getPersonDetails(username);
+        Person person = (Person)session.getAttribute("personInfo");
         ApiResponse response = new ApiResponse();
         if(person.getImage() == null){
             response.setMessage("Image is unavailable");
@@ -144,21 +136,22 @@ public class PersonRestController {
         }
         this.fileService.deleteImage(path,person.getImage());
         person.setImage(null);
-        personService.updateDetails(person);
-
+        session.setAttribute("personInfo",person);
+        personService.updateImage(person.getPerson_id(),null);
         response.setMessage("SuccessFully deleted");
         response.setSuccess(true);
         return ResponseEntity.status(200).body(response);
     }
 
     @GetMapping("/getPerson")
-    public ResponseEntity<Person> getDetails(Authentication authentication){
+    public ResponseEntity<Person> getDetails(HttpSession session,Authentication authentication){
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetails == false) {
             throw new RuntimeException("User Not Exist");
         }
         String username = ((UserDetails) principal).getUsername();
         Person person = personService.getPersonDetails(username);
+//        Person person = (Person)session.getAttribute("personInfo");
         return ResponseEntity.status(200).body(person);
     }
 

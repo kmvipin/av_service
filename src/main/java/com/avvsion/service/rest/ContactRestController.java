@@ -15,7 +15,6 @@ import java.util.*;
 @RestController
 @RequestMapping(value = "public/api/contact", produces =
         {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-@CrossOrigin("*")
 public class ContactRestController {
 
     @Autowired
@@ -50,14 +49,6 @@ public class ContactRestController {
        headers.forEach((key,value)-> log.info(String.format(
                "Header '%s' = %s", key, String.join("|", value))));
 
-       //Contact contact = requestEntity.getBody();
-//       contactService.deleteById(contact.getContact_id());
-//       Response response = new Response();
-//       response.setStatusMsg("Message successfully deleted");
-//       response.setStatusCode("200");
-//       return ResponseEntity
-//               .status(HttpStatus.OK)
-//               .body(response);
         return ResponseEntity.accepted().body(new ApiResponse());
    }
 
@@ -65,13 +56,6 @@ public class ContactRestController {
     public ResponseEntity<ApiResponse> closeMsg(@RequestParam int contact_id){
 
         contactService.updateMsgStatus(contact_id,AvServiceConstants.CLOSE, AvServiceConstants.ADMIN_ROLE);
-       /*else{
-           response.setStatusCode("400");
-           response.setStatusMsg("Invalid Contact Id received");
-           return ResponseEntity
-                   .status(HttpStatus.BAD_REQUEST)
-                   .body(response);
-       }*/
        return ResponseEntity
                .status(HttpStatus.OK)
                .body(new ApiResponse("Message Successfully Closed",true));

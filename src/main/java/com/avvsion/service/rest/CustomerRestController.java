@@ -17,7 +17,6 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/customer", produces =
         {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-@CrossOrigin("*")
 public class CustomerRestController {
     @Autowired
     private CustomerService customerService;
@@ -51,16 +50,21 @@ public class CustomerRestController {
     }
 
     @PostMapping("/updateInfo")
-    public ResponseEntity<ApiResponse> updateByEmail(@Valid @RequestBody Customers customer, Authentication authentication){
+    public ResponseEntity<ApiResponse> updateByEmail(@Valid @RequestBody Customers customer, Authentication authentication, HttpSession session){
+        System.out.println(customer);
         Object principal = authentication.getPrincipal();
         if (principal instanceof UserDetails == false) {
             throw new RuntimeException("User Not Exist");
         }
         String email = ((UserDetails) principal).getUsername();
         Customers customer2 = customerService.getCustomer(email);
-        customer.setCustomer_id(customer2.getCustomer_id());
-        customer.getPerson().setPerson_id(customer2.getPerson().getPerson_id());
+        int id = customer2.getCustomer_id();
+        customer.setCustomer_id(id);
+        customer.getPerson().setPerson_id(id);
         customer.getPerson().setEmail(email);
+        customer.getPerson().getAddress().setAddress_id(id);
+        customer.getPerson().setImage(customer2.getPerson().getImage());
+        session.setAttribute("personInfo",customer.getPerson());
         customerService.updateCustomer(customer);
         ApiResponse response = new ApiResponse();
         response.setSuccess(true);

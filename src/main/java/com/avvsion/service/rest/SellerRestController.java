@@ -2,7 +2,6 @@ package com.avvsion.service.rest;
 
 import com.avvsion.service.constants.AvServiceConstants;
 import com.avvsion.service.model.*;
-import com.avvsion.service.service.OrderService;
 import com.avvsion.service.service.PersonService;
 import com.avvsion.service.service.SellerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,6 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@CrossOrigin("*")
 @RequestMapping(value = "/api/seller", produces = {MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE})
 public class SellerRestController {
@@ -40,10 +38,13 @@ public class SellerRestController {
     @PostMapping("/updateInfo")
     public ResponseEntity<ApiResponse> updateByEmail(@Valid @RequestBody Sellers seller, HttpSession httpSession){
         sellerService.updateSellerDetails(seller);
-        Sellers httpSeller = (Sellers) httpSession.getAttribute("sellerInfo");
-        seller.setSeller_id(httpSeller.seller_id);
-        seller.getPerson().setPerson_id(httpSeller.getSeller_id());
-        seller.getPerson().setEmail(httpSeller.getPerson().getEmail());
+        Person person = (Person) httpSession.getAttribute("personInfo");
+        int id = person.getPerson_id();
+        seller.setSeller_id(id);
+        seller.getPerson().setPerson_id(id);
+        seller.getPerson().setEmail(person.getEmail());
+        seller.getPerson().getAddress().setAddress_id(id);
+        httpSession.setAttribute("personInfo",seller.getPerson());
         ApiResponse response = new ApiResponse();
         response.setSuccess(true);
         response.setMessage("Message saved successfully");

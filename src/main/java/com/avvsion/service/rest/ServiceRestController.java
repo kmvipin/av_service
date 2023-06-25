@@ -17,7 +17,6 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@CrossOrigin("*")
 @RequestMapping(value = "/api/service")
 public class ServiceRestController {
 

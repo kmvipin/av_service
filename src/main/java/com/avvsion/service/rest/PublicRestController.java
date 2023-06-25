@@ -7,9 +7,7 @@ import com.avvsion.service.model.JwtAuthResponse;
 import com.avvsion.service.security.JwtTokenHelper;
 import com.avvsion.service.service.*;
 import com.avvsion.service.service.fileserviceimpl.FileServiceImpl;
-import com.sun.org.apache.regexp.internal.RE;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,16 +23,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping(value = "/public/api", produces = {MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE})
-@CrossOrigin("*")
 public class PublicRestController {
 
     @Autowired
@@ -71,7 +68,10 @@ public class PublicRestController {
 
     @PostMapping("/user_login")
     public ResponseEntity<JwtAuthResponse> createToken(@Valid @RequestBody AuthCredential authCredential,
-                                           HttpSession session) {
+                                                       HttpServletRequest req, HttpServletResponse res) {
+
+        System.out.println("aklsjdfkasjh;iaughfuia");
+        System.out.println(authCredential);
 
         try{
             this.authenticate(authCredential.getEmail(), authCredential.getPass());
@@ -80,7 +80,7 @@ public class PublicRestController {
             JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
             jwtAuthResponse.setSuccess(false);
             jwtAuthResponse.setMessage("Invalid User");
-            return ResponseEntity.status(404).body(jwtAuthResponse);
+            return ResponseEntity.status(400).body(jwtAuthResponse);
         }
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(authCredential.getEmail());
         List<GrantedAuthority> auth = (List<GrantedAuthority>) userDetails.getAuthorities();
@@ -88,7 +88,7 @@ public class PublicRestController {
             JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
             jwtAuthResponse.setSuccess(false);
             jwtAuthResponse.setMessage("Invalid User");
-            return ResponseEntity.status(404).body(jwtAuthResponse);
+            return ResponseEntity.status(400).body(jwtAuthResponse);
         }
         String token = this.jwtTokenHelper.generateToken(userDetails);
         JwtAuthResponse response = new JwtAuthResponse();
@@ -98,17 +98,17 @@ public class PublicRestController {
             customer.getPerson().setPwd(null);
             System.out.println("asgasgga"+customer);
             response.setRole("CUSTOMER");
-            session.setAttribute("customerInfo", customer);
+            req.getSession().setAttribute("personInfo", customer.getPerson());
         }
         else if(AvServiceConstants.SELLER_ROLE.equals(authCredential.getRole())){
             Sellers seller = sellerService.getSellerDetails(authCredential.getEmail());
             seller.getPerson().setPwd(null);
-            session.setAttribute("sellerInfo", seller);
+            req.getSession().setAttribute("personInfo", seller.getPerson());
             response.setRole("SELLER");
         }
         response.setSuccess(true);
         response.setMessage("Login SuccessFully");
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity.status(200).body(response);
     }
 
     @PostMapping("/newCustomer")
@@ -207,12 +207,12 @@ public class PublicRestController {
         session.setAttribute("verifyOTP_"+phoneNumber,otp);
         smsService.sendOTP("+91"+phoneNumber, otp);
 
-        return ResponseEntity.status(200).body(new ApiResponse(otp, true));
+        return ResponseEntity.status(200).body(new ApiResponse("OTP sent Successfully", true));
     }
 
     @GetMapping("/verifyOTP")
-    public ResponseEntity<ApiResponse> verifyOTP(@RequestParam String otp, @RequestParam String email, HttpServletRequest request){
-        String generatedOTP = (String)request.getSession().getAttribute("verifyOTP_"+email);
+    public ResponseEntity<ApiResponse> verifyOTP(@RequestParam String otp, @RequestParam String phoneNumber, HttpServletRequest request){
+        String generatedOTP = (String)request.getSession().getAttribute("verifyOTP_"+phoneNumber);
         if(!otp.equals(generatedOTP)){
             return ResponseEntity.status(400).body(new ApiResponse("Invalid OTP",false));
         }
@@ -221,11 +221,12 @@ public class PublicRestController {
 
     @PostMapping("/changePass")
     public ResponseEntity<ApiResponse> changePassByPhoneNumber
-            (@RequestParam String otp, @RequestParam String phoneNumber, @RequestParam String newPass, @RequestParam(value = "confirmPass") String confirmPass, HttpSession session){
-            //String generatedOTP = (String)session.getAttribute("verifyOTP_"+email);
-//            if(!otp.equals(generatedOTP)){
-//                return ResponseEntity.status(400).body(new ApiResponse("Invalid OTP",false));
-//            }
+            (@RequestParam String otp, @RequestParam String phoneNumber, @RequestParam String newPass, @RequestParam(value = "confirmPass") String confirmPass, HttpServletRequest req){
+            String generatedOTP = (String)req.getSession().getAttribute("verifyOTP_"+phoneNumber);
+            System.out.println(generatedOTP);
+            if(!otp.equals(generatedOTP)){
+                return ResponseEntity.status(400).body(new ApiResponse("Invalid OTP",false));
+            }
             if(confirmPass == null || confirmPass.length() <= 4){
                 return ResponseEntity.status(400).body(new ApiResponse("Check Your Password",false));
             }
@@ -255,5 +256,4 @@ public class PublicRestController {
         object.put("email",email);
         return object.toString();
     }
-
 }

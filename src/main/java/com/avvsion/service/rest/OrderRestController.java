@@ -20,7 +20,6 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@CrossOrigin("*")
 @RequestMapping(value = "/api/order", produces = {MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE})
 public class OrderRestController {
@@ -31,7 +30,6 @@ public class OrderRestController {
     @Autowired
     private PersonService personService;
 
-    @PreAuthorize("hasAuthority('CUSTOMER')")
     @PostMapping("/create_order")
     public String payment(@RequestParam String amount) throws RazorpayException {
         int amt;

@@ -17,7 +17,14 @@ public class ServiceApplication {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry reg) {
-				reg.addMapping("/**").allowedOrigins("*");
+				reg.addMapping("/**")
+				.allowedOrigins("http://localhost:3000")
+				.allowedHeaders("Content-Type", "X-Requested-With", "accept", "Origin", "Access-Control-Request-Method",
+						"Access-Control-Request-Headers")
+				.exposedHeaders("Access-Control-Allow-Origin","Access-Control-Allow-Credentials","Access-Control-Allow-Headers")
+				.allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD")
+				.maxAge(3600)
+				.allowCredentials(true);
 			}
 		};
 

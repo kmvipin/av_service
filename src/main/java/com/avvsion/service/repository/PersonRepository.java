@@ -146,15 +146,12 @@ public class PersonRepository {
         String sql = "SELECT persons.email, persons.pwd, roles.role_name FROM persons JOIN roles ON persons.role_id = roles.role_id " +
                 "WHERE persons.email = ?";
 
-        return jdbcTemplate.queryForObject(sql, new RowMapper<AuthCredential>() {
-            @Override
-            public AuthCredential mapRow(ResultSet resultSet, int i) throws SQLException {
-                AuthCredential authCredential1 = new AuthCredential();
-                authCredential1.setEmail(resultSet.getString("persons.email"));
-                authCredential1.setPass(resultSet.getString("persons.pwd"));
-                authCredential1.setRole(resultSet.getString("roles.role_name"));
-                return authCredential1;
-            }
+        return jdbcTemplate.queryForObject(sql, (resultSet, i) -> {
+            AuthCredential authCredential1 = new AuthCredential();
+            authCredential1.setEmail(resultSet.getString("persons.email"));
+            authCredential1.setPass(resultSet.getString("persons.pwd"));
+            authCredential1.setRole(resultSet.getString("roles.role_name"));
+            return authCredential1;
         },email);
     }
 

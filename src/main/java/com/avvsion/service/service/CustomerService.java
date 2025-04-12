@@ -4,7 +4,6 @@ import com.avvsion.service.constants.AvServiceConstants;
 import com.avvsion.service.model.*;
 import com.avvsion.service.repository.AddressDao;
 import com.avvsion.service.repository.CustomerDao;
-import com.sun.org.apache.xpath.internal.operations.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

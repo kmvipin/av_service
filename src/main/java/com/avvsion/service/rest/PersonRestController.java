@@ -4,7 +4,6 @@ import com.avvsion.service.model.*;
 import com.avvsion.service.security.PersonDetailService;
 import com.avvsion.service.service.PersonService;
 import com.avvsion.service.service.fileserviceimpl.FileServiceImpl;
-import javafx.application.Application;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;

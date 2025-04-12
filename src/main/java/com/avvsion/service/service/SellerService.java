@@ -3,9 +3,7 @@ package com.avvsion.service.service;
 import com.avvsion.service.constants.AvServiceConstants;
 import com.avvsion.service.model.*;
 import com.avvsion.service.repository.AddressDao;
-import com.avvsion.service.repository.PersonRepository;
 import com.avvsion.service.repository.SellerDao;
-import jdk.internal.dynalink.linker.LinkerServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

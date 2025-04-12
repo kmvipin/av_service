@@ -1,6 +1,7 @@
 package com.avvsion.service.config;
 
 import com.avvsion.service.repository.ContactDao;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -12,9 +13,9 @@ import javax.sql.DataSource;
 public class DatabaseConfig {
     @Bean
     public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        HikariDataSource dataSource = new HikariDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://localhost:3306/av_service");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/av_service");
         dataSource.setUsername("root");
         dataSource.setPassword("Vipin@2017");
         return dataSource;
